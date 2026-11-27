@@ -1,0 +1,1771 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LOSTLESS AI — Proactive MCP Loss & Entitlement Discovery</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      background-color: #0B0F19;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+    }
+    .glass-panel {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(18px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .glass-card {
+      background: linear-gradient(180deg, rgba(17, 24, 39, 0.94) 0%, rgba(11, 15, 25, 0.98) 100%);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 32px -8px rgba(16, 185, 129, 0.3);
+    }
+    .glow-indigo {
+      box-shadow: 0 0 36px -8px rgba(99, 102, 241, 0.34);
+    }
+    @keyframes dashFlow {
+      to { stroke-dashoffset: -24; }
+    }
+    .animate-dash {
+      stroke-dasharray: 6 6;
+      animation: dashFlow 1.1s linear infinite;
+    }
+    @keyframes waveBar {
+      0%, 100% { height: 22%; }
+      50% { height: 96%; }
+    }
+    .wave-active .bar-1 { animation: waveBar 0.62s ease-in-out infinite 0.0s; }
+    .wave-active .bar-2 { animation: waveBar 0.54s ease-in-out infinite 0.14s; }
+    .wave-active .bar-3 { animation: waveBar 0.72s ease-in-out infinite 0.28s; }
+    .wave-active .bar-4 { animation: waveBar 0.48s ease-in-out infinite 0.08s; }
+    .wave-active .bar-5 { animation: waveBar 0.68s ease-in-out infinite 0.22s; }
+    .wave-active .bar-6 { animation: waveBar 0.58s ease-in-out infinite 0.04s; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0B0F19; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row antialiased selection:bg-emerald-500/30 selection:text-emerald-200 overflow-x-hidden">
+
+  <!-- ===================================================================== -->
+  <!-- LEFT NAVIGATION SIDEBAR (7 COMPLETE VIEWS)                            -->
+  <!-- ===================================================================== -->
+  <aside class="w-full lg:w-72 shrink-0 bg-[#080C16] border-b lg:border-b-0 lg:border-r border-slate-800/90 flex flex-col justify-between z-30">
+    <div>
+      <!-- Brand Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-800/80 flex items-center justify-between lg:justify-start gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-emerald-500/25 shrink-0">
+            <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-lg font-extrabold tracking-tight text-white">LOSTLESS</span>
+              <span class="text-lg font-extrabold tracking-tight text-emerald-400">AI</span>
+            </div>
+            <p class="text-[11px] font-mono text-slate-400">MCP v1.2 · Track 1</p>
+          </div>
+        </div>
+        <span class="lg:hidden px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+          Team Codex
+        </span>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="p-3 flex lg:flex-col gap-1.5 overflow-x-auto">
+        <button onclick="switchView('entitlements')" id="nav-entitlements" class="nav-btn flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 text-white shadow-md shadow-indigo-500/25 transition shrink-0 cursor-pointer">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Command Center</span>
+          </span>
+          <span id="nav-badge-count" class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-white/20 text-white">5</span>
+        </button>
+
+        <button onclick="switchView('graph')" id="nav-graph" class="nav-btn flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition shrink-0 cursor-pointer">
+          <i data-lucide="git-fork" class="w-4 h-4 text-sky-400"></i>
+          <span>Evidence Graph (SVG)</span>
+        </button>
+
+        <button onclick="switchView('approval')" id="nav-approval" class="nav-btn flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition shrink-0 cursor-pointer">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+            <span>1-Click Approval Gate</span>
+          </span>
+          <span id="nav-queue-badge" class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-300">4</span>
+        </button>
+
+        <button onclick="switchView('simulator')" id="nav-simulator" class="nav-btn flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition shrink-0 cursor-pointer">
+          <i data-lucide="file-scan" class="w-4 h-4 text-purple-400"></i>
+          <span>Document &amp; OCR Simulator</span>
+        </button>
+
+        <button onclick="switchView('connectors')" id="nav-connectors" class="nav-btn flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition shrink-0 cursor-pointer">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i>
+          <span>MCP Scopes &amp; PII Guard</span>
+        </button>
+
+        <button onclick="switchView('analytics')" id="nav-analytics" class="nav-btn flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition shrink-0 cursor-pointer">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-400"></i>
+          <span>Savings &amp; SaaS ROI</span>
+        </button>
+
+        <button onclick="switchView('audit')" id="nav-audit" class="nav-btn flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition shrink-0 cursor-pointer">
+          <span class="flex items-center gap-2.5">
+            <i data-lucide="terminal" class="w-4 h-4 text-amber-400"></i>
+            <span>MCP JSON-RPC Log</span>
+          </span>
+          <span id="nav-log-count" class="px-1.5 py-0.5 rounded-md text-[10px] font-mono bg-slate-800 text-slate-300">6</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Bottom Team & Cost Efficiency Telemetry -->
+    <div class="hidden lg:block p-4 m-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-white">Team Codex · Track 1</span>
+        <span class="px-2 py-0.5 rounded-md text-[10px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">wHACKiest '26</span>
+      </div>
+      <p class="text-[11px] text-slate-400 leading-relaxed">
+        Keyword pre-filtering cuts Bedrock tokens by <span class="text-indigo-300 font-semibold">72%</span> (<span class="text-emerald-400 font-semibold">₹9.40/user/mo</span>).
+      </p>
+      <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
+        <span>OAuth Gate:</span>
+        <span class="text-emerald-400 font-semibold">ZERO AUTO-SEND</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===================================================================== -->
+  <!-- MAIN WORKSPACE AREA                                                   -->
+  <!-- ===================================================================== -->
+  <div class="flex-1 flex flex-col min-w-0 pb-28">
+
+    <!-- Top Command Bar & Live Telemetry Pills -->
+    <header class="sticky top-0 z-20 bg-[#0B0F19]/95 backdrop-blur-xl border-b border-slate-800/80 px-4 sm:px-6 py-3.5">
+      <div class="max-w-7xl mx-auto flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              LOSTLESS AI · MCP v1.2 · Team Codex
+            </span>
+            <!-- Header Telemetry Pills -->
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-slate-900 text-slate-200 border border-slate-700/80">
+              Total Discovered: <strong id="hdr-discovered" class="text-white">₹21,490</strong>
+            </span>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+              Recovered: <strong id="hdr-recovered">₹4,500</strong>
+            </span>
+            <span class="hidden sm:inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-sky-500/10 text-sky-300 border border-sky-500/30">
+              MCP Servers: <strong id="hdr-servers">3 Connected</strong>
+            </span>
+            <span class="hidden md:inline-flex px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-purple-500/10 text-purple-300 border border-purple-500/30">
+              PII Redacted: <strong id="hdr-pii">14 Fields</strong>
+            </span>
+          </div>
+          <h1 id="page-heading" class="text-base sm:text-lg font-bold text-white mt-1.5">Command Center &amp; Discovered Entitlements</h1>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="exportRecoveryReport()" class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition cursor-pointer">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Export Recovery Report</span>
+          </button>
+
+          <button onclick="openScanModal()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-lg shadow-emerald-500/25 transition cursor-pointer">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span>Run Autonomous MCP Scan</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
+
+      <!-- =================================================================== -->
+      <!-- VIEW 1: COMMAND CENTER & ENTITLEMENTS (MAIN DASHBOARD)              -->
+      <!-- =================================================================== -->
+      <section id="view-entitlements" class="space-y-5">
+        <!-- 4 Summary Metric Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="glass-panel rounded-2xl p-4 sm:p-5 glow-emerald">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Potential Recovery</span>
+              <span class="p-2 rounded-xl bg-emerald-500/15 text-emerald-400"><i data-lucide="indian-rupee" class="w-4 h-4"></i></span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-2">
+              <span id="kpi-potential" class="text-2xl font-extrabold text-white">₹16,990</span>
+              <span class="text-xs font-medium text-emerald-400">unclaimed</span>
+            </div>
+            <p class="mt-1 text-[11px] text-slate-400">+ ₹4,500 already recovered</p>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-4 sm:p-5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Expiring Within 7d</span>
+              <span class="p-2 rounded-xl bg-rose-500/15 text-rose-400"><i data-lucide="alarm-clock" class="w-4 h-4"></i></span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-2">
+              <span id="kpi-expiring" class="text-2xl font-extrabold text-rose-400">3 Items</span>
+              <span class="text-xs font-mono text-amber-300">Action Needed</span>
+            </div>
+            <p class="mt-1 text-[11px] text-slate-400">Auto-prioritized by deadline</p>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-4 sm:p-5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Pending Approvals</span>
+              <span class="p-2 rounded-xl bg-amber-500/15 text-amber-400"><i data-lucide="shield-check" class="w-4 h-4"></i></span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-2">
+              <span id="kpi-pending" class="text-2xl font-extrabold text-white">4 Drafts</span>
+              <span class="text-xs font-medium text-indigo-300">Ready to Send</span>
+            </div>
+            <p class="mt-1 text-[11px] text-slate-400">100% human-gated safety</p>
+          </div>
+
+          <div class="glass-panel rounded-2xl p-4 sm:p-5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Avg Claim Prep Time</span>
+              <span class="p-2 rounded-xl bg-indigo-500/15 text-indigo-400"><i data-lucide="timer" class="w-4 h-4"></i></span>
+            </div>
+            <div class="mt-2 flex items-baseline gap-2">
+              <span class="text-2xl font-extrabold text-indigo-300">1m 42s</span>
+              <span class="text-xs line-through text-slate-500">vs 2.5 hrs</span>
+            </div>
+            <p class="mt-1 text-[11px] text-emerald-400">98.8% manual effort saved</p>
+          </div>
+        </div>
+
+        <!-- Filter Pills, Search & Sort Controls -->
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-slate-900/75 border border-slate-800 rounded-2xl p-3">
+          <div class="flex flex-wrap gap-1.5" id="filter-pills">
+            <button onclick="setFilter('all')" data-filter="all" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition cursor-pointer">
+              All (<span id="count-all">5</span>)
+            </button>
+            <button onclick="setFilter('critical')" data-filter="critical" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-950 text-slate-300 hover:bg-slate-800 border border-slate-800 transition cursor-pointer">
+              Critical (&lt;7d)
+            </button>
+            <button onclick="setFilter('warranty')" data-filter="warranty" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-950 text-slate-300 hover:bg-slate-800 border border-slate-800 transition cursor-pointer">
+              Warranty
+            </button>
+            <button onclick="setFilter('travel')" data-filter="travel" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-950 text-slate-300 hover:bg-slate-800 border border-slate-800 transition cursor-pointer">
+              Travel / Refund
+            </button>
+            <button onclick="setFilter('subscription')" data-filter="subscription" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-950 text-slate-300 hover:bg-slate-800 border border-slate-800 transition cursor-pointer">
+              Subscription
+            </button>
+            <button onclick="setFilter('rewards')" data-filter="rewards" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-950 text-slate-300 hover:bg-slate-800 border border-slate-800 transition cursor-pointer">
+              Banking / Rewards
+            </button>
+            <button onclick="setFilter('approved')" data-filter="approved" class="filter-pill px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-950 text-slate-300 hover:bg-slate-800 border border-slate-800 transition cursor-pointer">
+              Approved / Sent
+            </button>
+          </div>
+
+          <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <div class="relative flex-1 sm:w-56">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+              <input id="search-input" oninput="renderEntitlements()" type="text" placeholder="Search claims, clauses..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500" />
+            </div>
+            <select id="sort-select" onchange="renderEntitlements()" class="bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-emerald-500 cursor-pointer">
+              <option value="urgency">Sort: Urgency</option>
+              <option value="value">Sort: Highest Value</option>
+              <option value="confidence">Sort: AI Confidence</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Entitlement Cards Grid -->
+        <div id="entitlements-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 2: INTERACTIVE MULTI-DOCUMENT EVIDENCE GRAPH (SVG + INSPECTOR) -->
+      <!-- =================================================================== -->
+      <section id="view-graph" class="hidden space-y-5">
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 glow-indigo">
+          <!-- Top Selector Header -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span id="graph-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40">Expires in 5 Days</span>
+                <span id="graph-sim-score" class="text-xs font-mono text-emerald-400">pgvector Cosine Sim: 0.968</span>
+                <span class="text-xs text-slate-400">· Click any node below to inspect OCR &amp; redacted PII</span>
+              </div>
+              <h2 id="graph-title" class="mt-2 text-lg sm:text-xl font-bold text-white">Sony WH-1000XM5 Headphone Battery/Hinge Replacement</h2>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5">
+              <select id="graph-selector" onchange="selectClaim(this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-emerald-500 cursor-pointer">
+                <!-- Populated dynamically -->
+              </select>
+              <button onclick="playClaimVoice(selectedClaimId)" class="flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white transition cursor-pointer">
+                <i data-lucide="volume-2" class="w-4 h-4"></i>
+                <span>Play Voice Brief</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Visual SVG & HTML Node-Link Graph Canvas -->
+          <div class="mt-6 relative grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
+            <!-- Left 4 Cols: 3 Source App Nodes -->
+            <div class="lg:col-span-4 space-y-3.5 z-10">
+              <div onclick="selectGraphNode(0)" id="g-card-0" class="group rounded-xl bg-slate-900/95 hover:bg-slate-800 border-2 border-rose-500/60 p-4 cursor-pointer transition">
+                <div class="flex items-center justify-between mb-1">
+                  <span id="g-node1-source" class="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-400">
+                    <i data-lucide="mail" class="w-3.5 h-3.5"></i> Gmail MCP: Invoice
+                  </span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300">OCR Node 1</span>
+                </div>
+                <p id="g-node1-title" class="text-sm font-bold text-white">Amazon Tax Invoice #408-992184</p>
+                <p id="g-node1-meta" class="text-xs text-slate-400 mt-1">Paid ₹24,990 · Date: 14 Dec 2025</p>
+              </div>
+
+              <div onclick="selectGraphNode(1)" id="g-card-1" class="group rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-sky-500/40 p-4 cursor-pointer transition">
+                <div class="flex items-center justify-between mb-1">
+                  <span id="g-node2-source" class="inline-flex items-center gap-1.5 text-xs font-semibold text-sky-400">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5"></i> Drive MCP: Policy PDF
+                  </span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-300">Vector Node 2</span>
+                </div>
+                <p id="g-node2-title" class="text-sm font-bold text-white">Sony_2Yr_Extended_Warranty.pdf</p>
+                <p id="g-node2-meta" class="text-xs text-sky-300 font-mono mt-1 truncate">Clause 4.2: Battery &amp; hinge covered 100%</p>
+              </div>
+
+              <div onclick="selectGraphNode(2)" id="g-card-2" class="group rounded-xl bg-slate-900/95 hover:bg-slate-800 border border-amber-500/40 p-4 cursor-pointer transition">
+                <div class="flex items-center justify-between mb-1">
+                  <span id="g-node3-source" class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-400">
+                    <i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i> Thread / Calendar MCP
+                  </span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300">Event Node 3</span>
+                </div>
+                <p id="g-node3-title" class="text-sm font-bold text-white">Support Ticket #8841 — Charging Fault</p>
+                <p id="g-node3-meta" class="text-xs text-slate-400 mt-1">Quoted ₹4,500 repair fee · Contradicts Clause 4.2</p>
+              </div>
+            </div>
+
+            <!-- Animated SVG Connector Lines (Desktop) -->
+            <div class="hidden lg:flex lg:col-span-1 items-center justify-center h-64">
+              <svg class="w-full h-full overflow-visible" viewBox="0 0 60 240">
+                <path d="M 0 35 C 30 35, 30 120, 60 120" fill="none" stroke="#f43f5e" stroke-width="2" class="animate-dash" />
+                <path d="M 0 120 L 60 120" fill="none" stroke="#38bdf8" stroke-width="2" class="animate-dash" />
+                <path d="M 0 205 C 30 205, 30 120, 60 120" fill="none" stroke="#f59e0b" stroke-width="2" class="animate-dash" />
+              </svg>
+            </div>
+
+            <!-- Center 3 Cols: PostgreSQL + pgvector & Bedrock Reasoner -->
+            <div class="lg:col-span-3 flex flex-col items-center justify-center z-10">
+              <div class="w-full rounded-2xl bg-indigo-950/75 border-2 border-indigo-500/60 p-4 text-center shadow-2xl">
+                <div class="w-11 h-11 mx-auto rounded-xl bg-indigo-500/20 border border-indigo-400/40 flex items-center justify-center text-indigo-300 mb-2">
+                  <i data-lucide="brain-circuit" class="w-6 h-6"></i>
+                </div>
+                <span class="text-[10px] font-mono uppercase tracking-wider text-indigo-300">PostgreSQL + pgvector</span>
+                <h3 class="text-sm font-extrabold text-white mt-0.5">Entity Linker + Claude 3.5</h3>
+                <div class="mt-3 space-y-1.5 text-[11px] font-mono text-left bg-slate-950/85 rounded-xl p-3 border border-slate-800">
+                  <div class="text-emerald-400">✓ 3 Documents Linked</div>
+                  <div class="text-sky-300">✓ PII Locally Masked</div>
+                  <div class="text-amber-300">✓ Exact Clause Cited</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Animated SVG Output Connector (Desktop) -->
+            <div class="hidden lg:flex lg:col-span-1 items-center justify-center h-64">
+              <svg class="w-full h-full overflow-visible" viewBox="0 0 60 240">
+                <path d="M 0 120 L 60 120" fill="none" stroke="#10b981" stroke-width="2.5" class="animate-dash" />
+              </svg>
+            </div>
+
+            <!-- Right 3 Cols: Verified Entitlement Output -->
+            <div class="lg:col-span-3 z-10">
+              <div class="rounded-2xl bg-gradient-to-b from-emerald-950/55 to-slate-900 border-2 border-emerald-500/50 p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Verified Output</span>
+                  <span id="g-confidence" class="px-2 py-0.5 rounded-md text-[11px] font-mono bg-emerald-500/20 text-emerald-300">98% Conf</span>
+                </div>
+                <div class="p-2.5 rounded-xl bg-slate-950/90 border border-slate-800 text-[11px] font-mono text-sky-200 leading-relaxed" id="g-cited-clause">
+                  "Clause 4.2: Battery degradation &amp; hinge assembly failures are covered 100% within 24 months."
+                </div>
+                <div class="pt-2 border-t border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span class="text-[10px] text-slate-400 block">Claim Value</span>
+                    <span id="g-amount" class="text-xl font-extrabold text-emerald-400">₹4,500</span>
+                  </div>
+                  <button onclick="openInApproval(selectedClaimId)" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition cursor-pointer">
+                    Approve Gate →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Embedded Interactive Document & JSON Inspector Drawer -->
+          <div class="mt-6 rounded-2xl bg-slate-950/95 border border-slate-800 p-4 sm:p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+              <div class="flex items-center gap-2">
+                <i data-lucide="file-code-2" class="w-4 h-4 text-sky-400"></i>
+                <h3 id="inspector-heading" class="text-xs sm:text-sm font-bold text-white">Document Inspector: Amazon Tax Invoice #408-992184</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-md text-[11px] font-mono bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                  [CARD_LAST4_REDACTED] · [PHONE_REDACTED]
+                </span>
+              </div>
+            </div>
+            <div class="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <span class="text-[11px] font-semibold text-slate-400 uppercase">Extracted OCR / Highlighted Policy Text</span>
+                <p id="inspector-ocr-text" class="mt-1.5 p-3.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 leading-relaxed">
+                  Order #408-992184 · Sony WH-1000XM5 Wireless Noise Cancelling Headphones (Serial: SN-XM5-88219). Paid ₹24,990 on 14 Dec 2025 via [CARD_LAST4_REDACTED].
+                </p>
+              </div>
+              <div>
+                <span class="text-[11px] font-semibold text-slate-400 uppercase">Structured JSON Payload (pgvector Indexed)</span>
+                <pre id="inspector-json-box" class="mt-1.5 p-3.5 rounded-xl bg-slate-900 border border-slate-800 font-mono text-[11px] text-sky-300 overflow-x-auto leading-relaxed"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 3: 1-CLICK HUMAN-IN-THE-LOOP APPROVAL GATE & EMAIL COMPOSER    -->
+      <!-- =================================================================== -->
+      <section id="view-approval" class="hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Left 4 Cols: Pending Queue -->
+          <div class="lg:col-span-4 glass-panel rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 class="text-sm font-bold text-white">Human Approval Queue</h3>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-mono bg-emerald-500/15 text-emerald-300">Zero Auto-Send</span>
+            </div>
+            <div id="approval-queue-list" class="space-y-2.5">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Right 8 Cols: Interactive Claim Draft Composer -->
+          <div class="lg:col-span-8 glass-panel rounded-2xl p-5 sm:p-6 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div>
+                <h2 class="text-base sm:text-lg font-bold text-white">1-Click Human-in-the-Loop Approval Gate</h2>
+                <p class="text-xs text-slate-400">Read-Only OAuth Active · Gmail MCP sends only after explicit user confirmation.</p>
+              </div>
+              <span id="composer-status-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                Awaiting User Approval
+              </span>
+            </div>
+
+            <!-- Auto-Cited Policy Clause Callout -->
+            <div class="rounded-xl bg-indigo-950/50 border border-indigo-500/35 p-3.5 text-xs">
+              <span class="font-bold text-indigo-300 block mb-1">Auto-Cited Policy Proof Attached to Draft:</span>
+              <p id="comp-clause-callout" class="font-mono text-sky-200 leading-relaxed"></p>
+            </div>
+
+            <!-- Composer Inputs -->
+            <div class="space-y-3 text-xs">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label class="w-16 font-semibold text-slate-400">To:</label>
+                <input id="comp-to" type="text" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 font-mono focus:outline-none focus:border-emerald-500" />
+              </div>
+              <div class="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3">
+                <label class="w-16 font-semibold text-slate-400">Subject:</label>
+                <input id="comp-subject" type="text" class="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 font-medium focus:outline-none focus:border-emerald-500" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-400 mb-1.5">Claim Body (Editable):</label>
+                <textarea id="comp-body" rows="7" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs sm:text-sm text-slate-200 leading-relaxed focus:outline-none focus:border-emerald-500"></textarea>
+              </div>
+            </div>
+
+            <!-- Pre-Attached Proof Pills -->
+            <div>
+              <span class="block text-xs font-semibold text-slate-400 mb-2">Pre-Attached Proof Documents:</span>
+              <div id="comp-attachments" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <!-- Human Safety Checklist -->
+            <div class="rounded-xl bg-slate-900/90 border border-slate-800 p-3.5 space-y-2 text-xs">
+              <span class="font-bold text-slate-300 block">Human Safety Verification Checklist:</span>
+              <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+                <input type="checkbox" checked class="accent-emerald-500 rounded cursor-pointer" />
+                <span>Verified recipient address &amp; exact claim amount</span>
+              </label>
+              <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+                <input type="checkbox" checked class="accent-emerald-500 rounded cursor-pointer" />
+                <span>Confirmed sensitive Aadhaar/Card digits are redacted from attachments</span>
+              </label>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <button onclick="saveDraftOnly()" class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 transition cursor-pointer">
+                💾 Save Draft Only
+              </button>
+
+              <button onclick="dispatchApprovedClaim()" id="comp-dispatch-btn" class="flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 shadow-lg shadow-emerald-500/25 transition cursor-pointer">
+                <i data-lucide="send" class="w-4 h-4"></i>
+                <span id="comp-dispatch-text">✅ Approve &amp; Dispatch via Gmail MCP</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 4: LIVE CUSTOM DOCUMENT & RECEIPT SIMULATOR                    -->
+      <!-- =================================================================== -->
+      <section id="view-simulator" class="hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-6 glass-panel rounded-2xl p-5 sm:p-6 space-y-4">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30">Live AWS Textract + Bedrock Playground</span>
+              <h2 class="mt-2 text-lg font-bold text-white">Test Your Own Receipt &amp; Policy Case</h2>
+              <p class="text-xs text-slate-400 mt-0.5">Load one of 3 quick presets or paste any receipt/policy snippet to run live extraction and add it to your dashboard.</p>
+            </div>
+
+            <!-- 3 Quick-Load Presets -->
+            <div class="flex flex-wrap gap-2">
+              <button onclick="loadSimPreset('dell')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-sky-300 border border-sky-500/30 transition cursor-pointer">
+                Dell XPS Accidental Damage (₹12,000)
+              </button>
+              <button onclick="loadSimPreset('star')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-emerald-500/30 transition cursor-pointer">
+                Star Health Checkup (₹3,500)
+              </button>
+              <button onclick="loadSimPreset('prime')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/30 transition cursor-pointer">
+                Amazon Prime Duplicate Charge (₹1,499)
+              </button>
+            </div>
+
+            <textarea id="sim-input-text" rows="8" placeholder="Paste any purchase receipt, flight ticket, or warranty PDF snippet here..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"></textarea>
+
+            <button onclick="runSimExtraction()" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/25 transition cursor-pointer">
+              <i data-lucide="cpu" class="w-4 h-4"></i>
+              <span>Run Textract + Bedrock Extraction</span>
+            </button>
+          </div>
+
+          <div class="lg:col-span-6 glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between space-y-4">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">Structured Entity &amp; Clause Reasoning Output</h3>
+                <span id="sim-status-tag" class="text-xs font-mono text-slate-400">Idle</span>
+              </div>
+
+              <div id="sim-output-area">
+                <div class="rounded-xl bg-slate-950/80 border border-slate-800 p-6 text-xs text-slate-400 text-center py-14">
+                  Select a preset above (e.g., <strong class="text-sky-300">Dell XPS Accidental Damage</strong>) and click <strong class="text-indigo-300">"Run Textract + Bedrock Extraction"</strong>.
+                </div>
+              </div>
+            </div>
+
+            <div id="sim-add-btn-wrap" class="hidden pt-3 border-t border-slate-800">
+              <button onclick="addSimulatedClaimToDashboard()" class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition cursor-pointer">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>+ Add to Active Entitlements &amp; Approval Queue</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 5: MCP CONNECTORS, SCOPES & LIVE PII REDACTION TESTER          -->
+      <!-- =================================================================== -->
+      <section id="view-connectors" class="hidden space-y-5">
+        <!-- Core + Ecosystem MCP Connectors Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="mcp-connectors-grid">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Granular OAuth 2.0 Scope Inspector + Live Regex PII Sanitizer -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-5 glass-panel rounded-2xl p-5 space-y-3">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i data-lucide="key-round" class="w-4 h-4 text-emerald-400"></i>
+              Granular OAuth 2.0 Scope Inspector
+            </h3>
+            <div class="space-y-2 text-xs font-mono">
+              <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                <span class="text-slate-300">gmail.readonly</span>
+                <span class="text-emerald-400">GRANTED (Scan Only)</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                <span class="text-slate-300">drive.readonly</span>
+                <span class="text-emerald-400">GRANTED (PDF OCR)</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                <span class="text-slate-300">calendar.readonly</span>
+                <span class="text-emerald-400">GRANTED (Events)</span>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-950 border border-amber-500/35 flex items-center justify-between">
+                <span class="text-amber-300">gmail.compose</span>
+                <span class="text-amber-300">HUMAN-GATED LOCK</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 glass-panel rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i data-lucide="eye-off" class="w-4 h-4 text-rose-400"></i>
+                Live Local Regex PII Redaction Tester
+              </h3>
+              <span class="text-[11px] font-mono text-emerald-400">Runs Before Bedrock LLM</span>
+            </div>
+            <input id="pii-raw-input" oninput="runLivePiiSanitizer()" type="text" value="Customer Aadhaar 4829 9102 3341 paid ₹24,990 using Card 4532-8910-2211-9084, Phone +91-9845012345." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500" />
+            <div class="p-3.5 rounded-xl bg-emerald-950/30 border border-emerald-500/30">
+              <span class="text-[10px] font-mono uppercase text-emerald-400 block mb-1">Sanitized Payload Sent to AWS Bedrock:</span>
+              <p id="pii-sanitized-output" class="text-xs font-mono text-emerald-200 break-words"></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 6: RECOVERY ANALYTICS & HOUSEHOLD SAVINGS SIMULATOR            -->
+      <!-- =================================================================== -->
+      <section id="view-analytics" class="hidden space-y-5">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Interactive Household Savings & SaaS ROI Calculator -->
+          <div class="lg:col-span-6 glass-panel rounded-2xl p-5 sm:p-6 space-y-5">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">Slide 7 &amp; 8 Business Model Simulator</span>
+              <h2 class="mt-2 text-lg font-bold text-white">Household Savings &amp; SaaS ROI Calculator</h2>
+            </div>
+
+            <div class="space-y-4 text-xs">
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-slate-300 font-medium">Monthly Online Purchases / Orders</span>
+                  <span id="calc-orders-val" class="font-mono font-bold text-white">8 orders/mo</span>
+                </div>
+                <input id="calc-orders" oninput="updateSavingsCalc()" type="range" min="1" max="25" value="8" class="w-full accent-emerald-500 cursor-pointer" />
+              </div>
+
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-slate-300 font-medium">Active Digital Subscriptions &amp; Trials</span>
+                  <span id="calc-subs-val" class="font-mono font-bold text-white">5 subscriptions</span>
+                </div>
+                <input id="calc-subs" oninput="updateSavingsCalc()" type="range" min="1" max="15" value="5" class="w-full accent-indigo-500 cursor-pointer" />
+              </div>
+
+              <div>
+                <div class="flex justify-between mb-1">
+                  <span class="text-slate-300 font-medium">Annual Flights / Electronics / Insurance</span>
+                  <span id="calc-big-val" class="font-mono font-bold text-white">4 high-value items/yr</span>
+                </div>
+                <input id="calc-big" oninput="updateSavingsCalc()" type="range" min="1" max="12" value="4" class="w-full accent-sky-500 cursor-pointer" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-2">
+              <div class="p-4 rounded-xl bg-slate-950 border border-emerald-500/35">
+                <span class="text-[11px] text-slate-400 block">Projected Annual Recovery</span>
+                <span id="calc-annual-recovery" class="text-2xl font-extrabold text-emerald-400 mt-1 block">₹19,400/yr</span>
+              </div>
+              <div class="p-4 rounded-xl bg-slate-950 border border-indigo-500/35">
+                <span class="text-[11px] text-slate-400 block">Pro Plan Net ROI (₹149/mo)</span>
+                <span id="calc-roi-mult" class="text-2xl font-extrabold text-indigo-300 mt-1 block">10.8x ROI</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category Breakdown & LLM Unit Economics -->
+          <div class="lg:col-span-6 glass-panel rounded-2xl p-5 sm:p-6 space-y-5">
+            <h3 class="text-base font-bold text-white">Recovery Breakdown &amp; Unit Economics</h3>
+
+            <div class="space-y-3 text-xs">
+              <div>
+                <div class="flex justify-between mb-1"><span class="text-slate-300">Gadget Warranties &amp; Repairs</span><span class="font-mono text-emerald-400">38% (₹7,030)</span></div>
+                <div class="w-full bg-slate-900 h-2 rounded-full"><div class="bg-emerald-500 h-2 rounded-full" style="width: 38%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1"><span class="text-slate-300">Flight Delays &amp; Travel Refunds</span><span class="font-mono text-sky-400">29% (₹5,365)</span></div>
+                <div class="w-full bg-slate-900 h-2 rounded-full"><div class="bg-sky-500 h-2 rounded-full" style="width: 29%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1"><span class="text-slate-300">Auto-Renewal Subscription Traps</span><span class="font-mono text-amber-400">21% (₹3,885)</span></div>
+                <div class="w-full bg-slate-900 h-2 rounded-full"><div class="bg-amber-500 h-2 rounded-full" style="width: 21%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between mb-1"><span class="text-slate-300">Scholarships &amp; Card Milestones</span><span class="font-mono text-indigo-400">12% (₹2,220)</span></div>
+                <div class="w-full bg-slate-900 h-2 rounded-full"><div class="bg-indigo-500 h-2 rounded-full" style="width: 12%"></div></div>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs font-mono">
+              <div class="flex justify-between"><span class="text-slate-400">Keyword Pre-Filter Savings:</span><span class="text-emerald-400">72% Token Reduction</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">AWS Bedrock + Textract Cost:</span><span class="text-sky-300">₹9.40 / user / month</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Pro SaaS Gross Margin (₹149/mo):</span><span class="text-emerald-400 font-bold">&gt; 78% Gross Margin</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================== -->
+      <!-- VIEW 7: REAL-TIME MCP TOOL EXECUTION & JSON-RPC AUDIT LOG           -->
+      <!-- =================================================================== -->
+      <section id="view-audit" class="hidden space-y-5">
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-white">Real-Time FastMCP JSON-RPC Tool Execution &amp; Audit Log</h2>
+              <p class="text-xs text-slate-400">Every MCP tool invocation, latency metric, and human-gate approval is cryptographically logged.</p>
+            </div>
+            <select id="audit-filter" onchange="renderAuditTable()" class="bg-slate-950 border border-slate-800 text-xs text-slate-200 rounded-xl px-3 py-2 focus:outline-none cursor-pointer">
+              <option value="ALL">All MCP Methods</option>
+              <option value="gmail">Gmail MCP</option>
+              <option value="drive">Drive MCP</option>
+              <option value="bedrock">AWS Bedrock / Textract</option>
+              <option value="human">Human Gate Events</option>
+            </select>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs font-mono">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400">
+                  <th class="py-2.5 px-3">Timestamp</th>
+                  <th class="py-2.5 px-3">MCP Tool / Method</th>
+                  <th class="py-2.5 px-3">Details / Payload Summary</th>
+                  <th class="py-2.5 px-3">Latency</th>
+                  <th class="py-2.5 px-3">Status</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body" class="divide-y divide-slate-900">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- PERSISTENT BOTTOM ELEVENLABS VOICE BRIEFING PLAYER                    -->
+  <!-- ===================================================================== -->
+  <div class="fixed bottom-0 inset-x-0 lg:left-72 z-40 bg-[#080C16]/95 backdrop-blur-xl border-t border-indigo-500/35 px-4 sm:px-6 py-3 shadow-2xl">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-3 w-full sm:w-auto min-w-0">
+        <button onclick="toggleFloatingVoice()" id="float-voice-btn" class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white flex items-center justify-center shrink-0 shadow-lg transition cursor-pointer">
+          <i data-lucide="play" id="float-voice-icon" class="w-4 h-4"></i>
+        </button>
+
+        <!-- Equalizer Bars -->
+        <div id="float-waveform" class="flex items-end gap-0.5 h-6 px-1 shrink-0">
+          <span class="bar-1 w-1 bg-emerald-400 rounded-full h-2"></span>
+          <span class="bar-2 w-1 bg-indigo-400 rounded-full h-4"></span>
+          <span class="bar-3 w-1 bg-emerald-400 rounded-full h-2.5"></span>
+          <span class="bar-4 w-1 bg-indigo-400 rounded-full h-5"></span>
+          <span class="bar-5 w-1 bg-emerald-400 rounded-full h-2"></span>
+          <span class="bar-6 w-1 bg-indigo-400 rounded-full h-3.5"></span>
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-white">ElevenLabs Voice Briefing</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-indigo-500/20 text-indigo-300">TTS Live</span>
+          </div>
+          <p id="float-transcript" class="text-[11px] text-slate-300 truncate">
+            Select any claim or press Play to hear the spoken entitlement briefing.
+          </p>
+        </div>
+      </div>
+
+      <!-- Track & Language Controls -->
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-end shrink-0">
+        <select id="voice-track-select" onchange="selectClaim(this.value)" class="bg-slate-900 border border-slate-700 text-[11px] text-slate-200 rounded-lg px-2.5 py-1.5 max-w-[180px] truncate focus:outline-none cursor-pointer">
+          <!-- Populated dynamically -->
+        </select>
+
+        <select id="voice-lang" class="bg-slate-900 border border-slate-700 text-[11px] text-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none cursor-pointer">
+          <option value="en">English (IN)</option>
+          <option value="hi">Hinglish</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: LIVE AUTONOMOUS MCP SCAN PIPELINE                              -->
+  <!-- ===================================================================== -->
+  <div id="scan-modal" class="fixed inset-0 z-50 hidden bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel border-emerald-500/40 rounded-2xl max-w-xl w-full p-5 sm:p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+            <i data-lucide="radar" class="w-4 h-4 animate-spin"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-white">Autonomous FastMCP Pipeline Execution</h3>
+            <p class="text-xs text-slate-400">Gmail + Drive + Calendar → Textract → pgvector → Bedrock</p>
+          </div>
+        </div>
+        <button onclick="closeScanModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden">
+        <div id="modal-scan-bar" class="bg-gradient-to-r from-emerald-500 to-indigo-500 h-full rounded-full transition-all duration-300" style="width: 5%"></div>
+      </div>
+
+      <div id="modal-scan-logs" class="bg-slate-950 rounded-xl p-4 border border-slate-800 font-mono text-xs space-y-2.5 min-h-[200px]"></div>
+
+      <div id="modal-scan-footer" class="hidden pt-2 flex items-center justify-between gap-3">
+        <span class="text-xs font-semibold text-emerald-400">✨ Discovered 6th Entitlement: AppleCare+ Screen Claim (₹6,500)!</span>
+        <button onclick="closeScanModal()" class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition cursor-pointer">
+          View on Dashboard
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-5 right-5 z-50 hidden max-w-sm glass-panel border-emerald-500/50 bg-slate-900/95 rounded-2xl p-4 shadow-2xl">
+    <div class="flex items-start gap-3">
+      <div class="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <h4 id="toast-title" class="text-sm font-bold text-white">Action Completed</h4>
+        <p id="toast-msg" class="text-xs text-slate-300 mt-0.5 font-mono">Success</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. INITIAL DATA STATE (5 REALISTIC CASES + 1 ALREADY RECOVERED BASELINE)
+    // =========================================================================
+    let entitlements = [
+      {
+        id: 1,
+        title: "Sony WH-1000XM5 Headphone Battery/Hinge Replacement",
+        category: "warranty",
+        amount: 4500,
+        daysLeft: 5,
+        confidence: 98,
+        status: "pending",
+        sources: ["Gmail Invoice", "Drive Extended Warranty PDF", "Support Ticket #8841"],
+        voiceEn: "Critical alert from Lostless AI. Your Sony WH-1000XM5 headphones qualify for a free 4,500 rupee battery and hinge replacement under Clause 4.2 of your Drive warranty PDF. Only 5 days remain.",
+        voiceHi: "Critical Alert: Aapke Sony WH-1000XM5 headphones ka 4,500 rupaye ka free battery aur hinge replacement Clause 4.2 ke तहत covered hai. Sirf 5 din bache hain.",
+        citedClause: "\"Clause 4.2: Battery degradation & hinge assembly failures are covered 100% within 24 months of original invoice date.\"",
+        nodes: [
+          {
+            source: "Gmail MCP: Amazon Invoice",
+            title: "Tax Invoice #408-992184",
+            meta: "Paid ₹24,990 · Date: 14 Dec 2025",
+            ocr: "Order #408-992184 · Sony WH-1000XM5 ANC Headphones (Serial: SN-XM5-88219). Paid ₹24,990 on 14 Dec 2025 via [CARD_LAST4_REDACTED].",
+            json: { mcp_tool: "gmail.get_message", invoice_id: "408-992184", serial: "SN-XM5-88219", amount_inr: 24990, card: "[CARD_LAST4_REDACTED]" }
+          },
+          {
+            source: "Drive MCP: Extended Warranty PDF",
+            title: "Sony_2Yr_Extended_Warranty.pdf",
+            meta: "Clause 4.2: Battery & hinge covered 100%",
+            ocr: "Clause 4.2: Battery degradation & hinge assembly failures are covered 100% within 24 months of original invoice date with zero service fee.",
+            json: { mcp_tool: "drive.get_file_text", file: "Sony_2Yr_Extended_Warranty.pdf", clause: "4.2", pgvector_sim: 0.968 }
+          },
+          {
+            source: "Gmail MCP: Support Ticket #8841",
+            title: "Service Center Quote #8841",
+            meta: "Quoted ₹4,500 fee · Contradicts Clause 4.2",
+            ocr: "Ticket #8841: Customer reported left hinge crack & battery drop. Service center quoted ₹4,500 out-of-warranty repair fee.",
+            json: { mcp_tool: "gmail.search_threads", ticket: "SONY-8841", quoted_inr: 4500, policy_violation: true }
+          }
+        ],
+        draft: {
+          to: "support.india@sony.com",
+          subject: "Warranty Claim Escalation — Ticket #8841 | Serial SN-XM5-88219 (Clause 4.2)",
+          body: "Dear Sony India Support,\n\nRegarding Service Ticket #8841 for my Sony WH-1000XM5 (Serial: SN-XM5-88219, Invoice #408-992184 dated 14 Dec 2025), the service center quoted ₹4,500.\n\nPer Clause 4.2 of my attached 2-Year Extended Warranty Certificate, battery and hinge failures are covered 100% within 24 months. Please waive the ₹4,500 fee and approve a free replacement.\n\nRegards,\nJayalakshmi M",
+          attachments: ["Invoice_Sony_XM5.pdf", "Extended_Warranty_Cert.pdf"]
+        }
+      },
+      {
+        id: 2,
+        title: "IndiGo 6E-2041 Flight Delay Compensation (DGCA CAR)",
+        category: "travel",
+        amount: 5000,
+        daysLeft: 11,
+        confidence: 95,
+        status: "pending",
+        sources: ["Gmail E-Ticket", "Calendar Delay Event", "DGCA Rule 3.3 PDF"],
+        voiceEn: "Lostless AI found a 5,000 rupee flight delay claim. IndiGo flight 6E-2041 was delayed by 4 hours and 35 minutes, qualifying under DGCA Rule 3.3.",
+        voiceHi: "Lostless AI ne 5,000 rupaye ka flight delay claim discover kiya hai. IndiGo flight 6E-2041 4 ghante 35 minute delay hui thi.",
+        citedClause: "\"DGCA CAR Section 3, Series M, Rule 3.3: Block delay exceeding 4 hours entitles passenger to ₹5,000 compensation or full basic fare refund.\"",
+        nodes: [
+          {
+            source: "Gmail MCP: IndiGo E-Ticket",
+            title: "PNR K9M4LP (BLR → BOM)",
+            meta: "Scheduled 08:10 AM · Paid ₹5,420",
+            ocr: "IndiGo E-Ticket PNR K9M4LP · Flight 6E-2041 BLR to BOM. Passenger phone [PHONE_REDACTED].",
+            json: { mcp_tool: "gmail.get_message", pnr: "K9M4LP", flight: "6E-2041", phone: "[PHONE_REDACTED]" }
+          },
+          {
+            source: "Calendar MCP: Delay Telemetry",
+            title: "Gate Departure Delayed 4h 35m",
+            meta: "Actual Departure: 12:45 PM",
+            ocr: "Calendar flight tracker recorded 275-minute departure delay on 6E-2041 due to crew turnaround.",
+            json: { mcp_tool: "calendar.list_events", delay_minutes: 275, threshold_exceeded: true }
+          },
+          {
+            source: "Drive MCP: DGCA CAR Policy",
+            title: "DGCA_Rule_3_3_Passenger_Rights.pdf",
+            meta: "Rule 3.3: >4 hr delay = ₹5,000 payout",
+            ocr: "Rule 3.3: Airlines must compensate ₹5,000 for domestic block delays exceeding 4 hours without prior 24-hour notice.",
+            json: { mcp_tool: "drive.get_file_text", rule: "DGCA_3.3", pgvector_sim: 0.951 }
+          }
+        ],
+        draft: {
+          to: "customer.relations@goindigo.in",
+          subject: "DGCA CAR Rule 3.3 Delay Compensation (₹5,000) — PNR K9M4LP | Flight 6E-2041",
+          body: "Dear IndiGo Customer Relations,\n\nMy flight 6E-2041 (PNR: K9M4LP) was delayed by 4 hours and 35 minutes. Under DGCA CAR Section 3, Series M, Rule 3.3, I am entitled to ₹5,000 compensation.\n\nPlease process this claim within 7 working days.\n\nRegards,\nJayalakshmi M",
+          attachments: ["IndiGo_ETicket_K9M4LP.pdf", "DGCA_Rule_3_3.pdf"]
+        }
+      },
+      {
+        id: 3,
+        title: "Adobe Creative Cloud Annual Auto-Renewal Trap",
+        category: "subscription",
+        amount: 6490,
+        daysLeft: 3,
+        confidence: 99,
+        status: "pending",
+        sources: ["Gmail Trial Receipt", "Calendar Renewal Alert", "Cancellation Policy"],
+        voiceEn: "Urgent renewal trap alert! Adobe Creative Cloud will auto-charge 6,490 rupees in 3 days. Zero usage detected over the past 21 days.",
+        voiceHi: "Urgent Alert: Adobe Creative Cloud 3 din mein 6,490 rupaye auto-charge karne wala hai. Pichle 21 din mein zero usage detect hua hai.",
+        citedClause: "\"Section 4.1: Annual trial plans cancelled at least 24 hours prior to renewal date incur ₹0 renewal charges.\"",
+        nodes: [
+          {
+            source: "Gmail MCP: Trial Receipt",
+            title: "Adobe Plan #ADB-90211",
+            meta: "Auto-charges ₹6,490 in 3 days",
+            ocr: "Adobe Creative Cloud Annual Plan trial ends in 3 days; auto-debit of ₹6,490 scheduled on [CARD_LAST4_REDACTED].",
+            json: { mcp_tool: "gmail.get_message", order_id: "ADB-90211", charge_inr: 6490, card: "[CARD_LAST4_REDACTED]" }
+          },
+          {
+            source: "Calendar MCP: Renewal Reminder",
+            title: "Billing Cycle Trigger: 27 Nov 2026",
+            meta: "3 Days Before Auto-Debit",
+            ocr: "Calendar billing alert flags ₹6,490 annual charge in 72 hours.",
+            json: { mcp_tool: "calendar.list_events", days_until_debit: 3 }
+          },
+          {
+            source: "Drive MCP: Cancellation Terms",
+            title: "Adobe_Subscription_Terms.pdf",
+            meta: "Section 4.1: ₹0 fee before renewal",
+            ocr: "Section 4.1: Cancel any time up to 24 hours before trial expiration for zero charge.",
+            json: { mcp_tool: "drive.get_file_text", clause: "4.1", pgvector_sim: 0.989 }
+          }
+        ],
+        draft: {
+          to: "billing-support@adobe.com",
+          subject: "Immediate Auto-Renewal Cancellation (Save ₹6,490) — Order #ADB-90211",
+          body: "Hello Adobe Billing Team,\n\nPlease cancel auto-renewal for Order #ADB-90211 prior to the upcoming billing cycle per Section 4.1 of your subscription terms so no ₹6,490 charge is processed.\n\nThank you,\nJayalakshmi M",
+          attachments: ["Adobe_Trial_Receipt.pdf", "Cancellation_Policy_4_1.pdf"]
+        }
+      },
+      {
+        id: 4,
+        title: "NSP / Buddy4Study Merit Scholarship Document Mismatch Alert",
+        category: "rewards",
+        amount: 3000,
+        daysLeft: 8,
+        confidence: 92,
+        status: "pending",
+        sources: ["Gmail Application Receipt", "Drive Income/Bonafide PDF"],
+        voiceEn: "Scholarship alert from Lostless AI. Your NSP Merit Scholarship application has an outdated bonafide certificate filename. Fix it within 8 days to unlock 3,000 rupees.",
+        voiceHi: "Scholarship Alert: Aapke NSP Merit Scholarship application mein bonafide PDF mismatch hai. 8 din ke andar update karke 3,000 rupaye unlock karein.",
+        citedClause: "\"NSP Guideline 2.4: Valid 2026-27 Bonafide Certificate must accompany application before institutional verification closes.\"",
+        nodes: [
+          {
+            source: "Gmail MCP: Application Receipt",
+            title: "NSP Application #KA2026008192",
+            meta: "Grant: ₹3,000 · Status: Pending Doc Sync",
+            ocr: "National Scholarship Portal receipt #KA2026008192 for ₹3,000 Merit Grant.",
+            json: { mcp_tool: "gmail.get_message", app_id: "KA2026008192", grant_inr: 3000 }
+          },
+          {
+            source: "Drive MCP: Bonafide PDF",
+            title: "Sambhram_Bonafide_2026_Signed.pdf",
+            meta: "Found in Drive /College_Docs folder",
+            ocr: "Signed Bonafide & Income Certificate for Jayalakshmi M (USN: 1ST25CS043). Aadhaar [AADHAAR_REDACTED].",
+            json: { mcp_tool: "drive.get_file_text", usn: "1ST25CS043", aadhaar: "[AADHAAR_REDACTED]" }
+          },
+          {
+            source: "Calendar MCP: Verification Window",
+            title: "Institute Nodal Deadline: 8 Days",
+            meta: "Auto-drafted submission email",
+            ocr: "Institute verification deadline closes in 8 days.",
+            json: { mcp_tool: "calendar.list_events", days_left: 8 }
+          }
+        ],
+        draft: {
+          to: "scholarship.nodal@sambhram.edu.in",
+          subject: "Updated 2026-27 Bonafide PDF for NSP Application #KA2026008192 (₹3,000)",
+          body: "Respected Nodal Officer,\n\nPlease find attached my signed 2026-27 Bonafide Certificate for NSP Merit Scholarship Application #KA2026008192 (₹3,000) ahead of the deadline.\n\nRegards,\nJayalakshmi M (USN: 1ST25CS043)",
+          attachments: ["Sambhram_Bonafide_2026_Signed.pdf", "NSP_Receipt.pdf"]
+        }
+      },
+      {
+        id: 5,
+        title: "HDFC Millennia Quarterly Milestone Cashback Voucher",
+        category: "rewards",
+        amount: 2500,
+        daysLeft: 6,
+        confidence: 96,
+        status: "pending",
+        sources: ["Gmail Promotions Voucher", "Statement PDF", "Offer T&C"],
+        voiceEn: "Hidden reward discovered! You crossed 1 lakh rupees quarterly spend on your HDFC Millennia card, unlocking a 2,500 rupee voucher buried in Gmail Promotions.",
+        voiceHi: "Hidden Reward: Aapke HDFC Millennia card par 1 lakh spend poora hone se 2,500 rupaye ka voucher Gmail Promotions mein mila hai.",
+        citedClause: "\"Offer T&C Clause 6.1: Quarterly retail spend >= ₹1,00,000 unlocks a ₹2,500 e-voucher redeemable within 30 days.\"",
+        nodes: [
+          {
+            source: "Gmail MCP: Promotions Tab",
+            title: "Unclaimed HDFC Milestone E-Voucher",
+            meta: "Buried in Promotions · Value ₹2,500",
+            ocr: "Congratulations! Redeem your ₹2,500 quarterly milestone voucher before expiry in 6 days.",
+            json: { mcp_tool: "gmail.search_threads", folder: "CATEGORY_PROMOTIONS", voucher_inr: 2500 }
+          },
+          {
+            source: "Drive MCP: Card Statement PDF",
+            title: "HDFC_Statement_Q3_2026.pdf",
+            meta: "Verified Spend: ₹1,06,400",
+            ocr: "Total quarterly eligible retail spend: ₹1,06,400 on [CARD_LAST4_REDACTED].",
+            json: { mcp_tool: "drive.get_file_text", quarterly_spend: 106400, card: "[CARD_LAST4_REDACTED]" }
+          },
+          {
+            source: "Drive MCP: Offer T&C",
+            title: "Millennia_Milestone_TC.pdf",
+            meta: "Clause 6.1: ₹2,500 voucher eligible",
+            ocr: "Clause 6.1: Eligible cardholders receive ₹2,500 voucher code.",
+            json: { mcp_tool: "drive.get_file_text", clause: "6.1", pgvector_sim: 0.962 }
+          }
+        ],
+        draft: {
+          to: "priority.cards@hdfcbank.com",
+          subject: "Milestone Voucher Re-Activation Request (₹2,500) — Clause 6.1",
+          body: "Dear HDFC Bank Cards Team,\n\nPer my attached Q3 statement showing ₹1,06,400 eligible spend, please confirm redemption credit for my ₹2,500 milestone voucher under Clause 6.1.\n\nRegards,\nJayalakshmi M",
+          attachments: ["HDFC_Statement_Q3_2026.pdf", "Millennia_Milestone_TC.pdf"]
+        }
+      }
+    ];
+
+    // Baseline already recovered before session starts = ₹4,500 (matches header telemetry)
+    let baselineRecovered = 4500;
+    let piiRedactedCount = 14;
+    let selectedClaimId = 1;
+    let selectedGraphNodeIdx = 0;
+    let currentFilter = "all";
+    let bonusScanDone = false;
+    let isSpeaking = false;
+    let simDraftObject = null;
+
+    let mcpConnectors = [
+      { id: "gmail", name: "Google Gmail MCP", scope: "gmail.readonly + gated compose", status: "Connected", active: true, color: "rose", icon: "mail", meta: "1,240 threads indexed" },
+      { id: "drive", name: "Google Drive MCP", scope: "drive.readonly (PDF/OCR)", status: "Connected", active: true, color: "sky", icon: "hard-drive", meta: "48 policy PDFs linked" },
+      { id: "calendar", name: "Google Calendar MCP", scope: "calendar.readonly + alerts", status: "Connected", active: true, color: "amber", icon: "calendar", meta: "19 deadlines tracked" },
+      { id: "whatsapp", name: "WhatsApp Business MCP", scope: "messages.readonly (Receipts)", status: "Optional", active: false, color: "emerald", icon: "message-square", meta: "Toggle to enable preview" },
+      { id: "digilocker", name: "DigiLocker MCP", scope: "issued_docs.readonly", status: "Optional", active: false, color: "indigo", icon: "folder-lock", meta: "Academic & RC certificates" },
+      { id: "upi", name: "Razorpay / UPI Statement MCP", scope: "transactions.readonly", status: "Optional", active: false, color: "purple", icon: "credit-card", meta: "Auto-detect duplicate debits" }
+    ];
+
+    let mcpAuditRows = [
+      { time: "21:50:11", category: "gmail", method: "mcp://google-workspace/gmail.search", detail: "query='invoice OR warranty OR delay' (keyword pre-filter: -72% tokens)", latency: "142 ms", status: "200 OK" },
+      { time: "21:50:12", category: "drive", method: "mcp://google-workspace/drive.get_file_text", detail: "file='Sony_2Yr_Extended_Warranty.pdf' (1,480 chars extracted)", latency: "188 ms", status: "200 OK" },
+      { time: "21:50:13", category: "bedrock", method: "aws.textract.analyze_document", detail: "Extracted serial SN-XM5-88219 & INR 24,990; masked 4 PII tokens", latency: "310 ms", status: "VERIFIED" },
+      { time: "21:50:14", category: "bedrock", method: "bedrock.claude-3-5-sonnet.reason", detail: "Linked 3 docs -> Clause 4.2 match (Cosine Sim 0.968)", latency: "620 ms", status: "CITED" },
+      { time: "21:50:15", category: "human", method: "human_gate.stage_draft", detail: "Staged 5 drafts in Approval Gate (Zero auto-send enforced)", latency: "12 ms", status: "GATED" }
+    ];
+
+    // =========================================================================
+    // 2. NAVIGATION & FILTERING
+    // =========================================================================
+    function switchView(viewName) {
+      const views = ["entitlements", "graph", "approval", "simulator", "connectors", "analytics", "audit"];
+      const titles = {
+        entitlements: "Command Center & Discovered Entitlements",
+        graph: "Interactive Multi-Document Evidence Graph (SVG)",
+        approval: "1-Click Human-in-the-Loop Approval Gate & Email Composer",
+        simulator: "Live Custom Document & Receipt Simulator",
+        connectors: "MCP Connectors, OAuth Scopes & Local PII Guard",
+        analytics: "Recovery Analytics & Household Savings Simulator",
+        audit: "Real-Time MCP Tool Execution & JSON-RPC Audit Log"
+      };
+
+      views.forEach(v => {
+        document.getElementById(`view-${v}`).classList.toggle("hidden", v !== viewName);
+        const btn = document.getElementById(`nav-${v}`);
+        if (v === viewName) {
+          btn.className = "nav-btn flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-600 text-white shadow-md shadow-indigo-500/25 transition shrink-0 cursor-pointer";
+        } else {
+          btn.className = "nav-btn flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium text-slate-300 hover:bg-slate-900 hover:text-white transition shrink-0 cursor-pointer";
+        }
+      });
+
+      document.getElementById("page-heading").textContent = titles[viewName];
+      lucide.createIcons();
+    }
+
+    function setFilter(key) {
+      currentFilter = key;
+      document.querySelectorAll(".filter-pill").forEach(btn => {
+        if (btn.dataset.filter === key) {
+          btn.className = "filter-pill px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white transition cursor-pointer";
+        } else {
+          btn.className = "filter-pill px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-950 text-slate-300 hover:bg-slate-800 border border-slate-800 transition cursor-pointer";
+        }
+      });
+      renderEntitlements();
+    }
+
+    // =========================================================================
+    // 3. TELEMETRY & ENTITLEMENT CARDS RENDERING
+    // =========================================================================
+    function updateAllTelemetry() {
+      const pending = entitlements.filter(e => e.status === "pending");
+      const approved = entitlements.filter(e => e.status === "approved");
+
+      const pendingSum = pending.reduce((acc, e) => acc + e.amount, 0);
+      const newlyRecovered = approved.reduce((acc, e) => acc + e.amount, 0);
+      const totalRecovered = baselineRecovered + newlyRecovered;
+      const totalDiscovered = pendingSum + totalRecovered;
+      const expiringSoonCount = pending.filter(e => e.daysLeft < 7).length;
+      const activeServers = mcpConnectors.filter(c => c.active).length;
+
+      document.getElementById("hdr-discovered").textContent = `₹${totalDiscovered.toLocaleString("en-IN")}`;
+      document.getElementById("hdr-recovered").textContent = `₹${totalRecovered.toLocaleString("en-IN")}`;
+      document.getElementById("hdr-servers").textContent = `${activeServers} Connected`;
+      document.getElementById("hdr-pii").textContent = `${piiRedactedCount} Fields`;
+
+      document.getElementById("kpi-potential").textContent = `₹${pendingSum.toLocaleString("en-IN")}`;
+      document.getElementById("kpi-expiring").textContent = `${expiringSoonCount} Items`;
+      document.getElementById("kpi-pending").textContent = `${pending.length} Drafts`;
+
+      document.getElementById("count-all").textContent = entitlements.length;
+      document.getElementById("nav-badge-count").textContent = entitlements.length;
+      document.getElementById("nav-queue-badge").textContent = pending.length;
+      document.getElementById("nav-log-count").textContent = mcpAuditRows.length;
+    }
+
+    function renderEntitlements() {
+      const q = document.getElementById("search-input").value.toLowerCase().trim();
+      const sortBy = document.getElementById("sort-select").value;
+
+      let list = entitlements.filter(item => {
+        const matchFilter =
+          currentFilter === "all" ||
+          (currentFilter === "critical" && item.daysLeft < 7 && item.status === "pending") ||
+          (currentFilter === "approved" && item.status === "approved") ||
+          item.category === currentFilter;
+        const matchQuery =
+          !q ||
+          item.title.toLowerCase().includes(q) ||
+          item.citedClause.toLowerCase().includes(q) ||
+          item.sources.some(s => s.toLowerCase().includes(q));
+        return matchFilter && matchQuery;
+      });
+
+      if (sortBy === "urgency") list.sort((a, b) => a.daysLeft - b.daysLeft);
+      if (sortBy === "value") list.sort((a, b) => b.amount - a.amount);
+      if (sortBy === "confidence") list.sort((a, b) => b.confidence - a.confidence);
+
+      const grid = document.getElementById("entitlements-grid");
+      if (list.length === 0) {
+        grid.innerHTML = `<div class="col-span-full glass-panel rounded-2xl p-8 text-center text-xs sm:text-sm text-slate-400">No entitlements match the current filter.</div>`;
+        return;
+      }
+
+      grid.innerHTML = list.map(item => {
+        const isApproved = item.status === "approved";
+        let badge = "";
+        if (isApproved) {
+          badge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✓ Dispatched via Gmail MCP</span>`;
+        } else if (item.daysLeft <= 6) {
+          badge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">Expires in ${item.daysLeft}d · Critical</span>`;
+        } else {
+          badge = `<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/35">Expires in ${item.daysLeft}d</span>`;
+        }
+
+        return `
+          <div class="glass-card rounded-2xl p-5 flex flex-col justify-between hover:border-emerald-500/45 transition ${isApproved ? 'border-emerald-500/40 opacity-85' : ''}">
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                ${badge}
+                <span class="px-2 py-0.5 rounded-md text-[11px] font-mono bg-indigo-500/15 text-indigo-300 border border-indigo-500/30">${item.confidence}% Confidence</span>
+              </div>
+
+              <h3 class="mt-3 text-base font-bold text-white leading-snug">${item.title}</h3>
+
+              <div class="mt-3 flex items-center justify-between bg-slate-950/90 rounded-xl p-3 border border-slate-800">
+                <span class="text-xs text-slate-400">Discovered Value</span>
+                <span class="text-xl font-extrabold text-emerald-400">₹${item.amount.toLocaleString("en-IN")}</span>
+              </div>
+
+              <p class="mt-3 text-[11px] font-mono text-sky-200 bg-sky-950/30 border border-sky-500/20 rounded-lg p-2 line-clamp-2">
+                ${item.citedClause}
+              </p>
+
+              <div class="mt-3 flex flex-wrap gap-1.5">
+                ${item.sources.map(s => `<span class="px-2 py-0.5 rounded-md text-[11px] font-mono bg-slate-900 text-slate-300 border border-slate-700/80">${s}</span>`).join("")}
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3.5 border-t border-slate-800/80 flex flex-wrap items-center gap-2">
+              <button onclick="openInGraph(${item.id})" class="flex-1 min-w-[125px] py-2 px-3 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-white transition cursor-pointer">
+                Inspect Evidence Graph
+              </button>
+              <button onclick="playClaimVoice(${item.id})" class="py-2 px-3 rounded-xl text-xs font-semibold bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-300 border border-indigo-500/30 transition cursor-pointer">
+                🔊 Voice Brief
+              </button>
+              <button onclick="openInApproval(${item.id})" class="flex-1 min-w-[125px] py-2 px-3 rounded-xl text-xs font-bold ${isApproved ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30' : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'} transition cursor-pointer">
+                ${isApproved ? '✓ Approved' : '1-Click Approve & Draft'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      lucide.createIcons();
+    }
+
+    // =========================================================================
+    // 4. SVG EVIDENCE GRAPH & INTERACTIVE DOCUMENT INSPECTOR
+    // =========================================================================
+    function populateClaimSelectors() {
+      const optionsHtml = entitlements.map(e =>
+        `<option value="${e.id}" ${e.id === selectedClaimId ? "selected" : ""}>#${e.id} ${e.title} (₹${e.amount.toLocaleString("en-IN")})</option>`
+      ).join("");
+      document.getElementById("graph-selector").innerHTML = optionsHtml;
+      document.getElementById("voice-track-select").innerHTML = optionsHtml;
+    }
+
+    function selectClaim(id) {
+      selectedClaimId = parseInt(id, 10);
+      const item = entitlements.find(e => e.id === selectedClaimId) || entitlements[0];
+      selectedClaimId = item.id;
+      populateClaimSelectors();
+
+      document.getElementById("graph-badge").textContent = `Expires in ${item.daysLeft} Days`;
+      document.getElementById("graph-title").textContent = item.title;
+      document.getElementById("g-confidence").textContent = `${item.confidence}% Conf`;
+      document.getElementById("g-cited-clause").textContent = item.citedClause;
+      document.getElementById("g-amount").textContent = `₹${item.amount.toLocaleString("en-IN")}`;
+
+      item.nodes.forEach((n, idx) => {
+        const num = idx + 1;
+        document.getElementById(`g-node${num}-source`).innerHTML = `<i data-lucide="file-check" class="w-3.5 h-3.5"></i> ${n.source}`;
+        document.getElementById(`g-node${num}-title`).textContent = n.title;
+        document.getElementById(`g-node${num}-meta`).textContent = n.meta;
+      });
+
+      selectGraphNode(0);
+      document.getElementById("float-transcript").textContent = item.voiceEn;
+
+      renderApprovalQueue();
+      loadApprovalComposer(item);
+      lucide.createIcons();
+    }
+
+    function selectGraphNode(idx) {
+      selectedGraphNodeIdx = idx;
+      const item = entitlements.find(e => e.id === selectedClaimId);
+      const node = item.nodes[idx];
+
+      [0, 1, 2].forEach(i => {
+        const card = document.getElementById(`g-card-${i}`);
+        if (i === idx) {
+          card.classList.add("ring-2", "ring-emerald-400");
+        } else {
+          card.classList.remove("ring-2", "ring-emerald-400");
+        }
+      });
+
+      document.getElementById("inspector-heading").textContent = `Document Inspector: ${node.title}`;
+      document.getElementById("inspector-ocr-text").textContent = node.ocr;
+      document.getElementById("inspector-json-box").textContent = JSON.stringify(node.json, null, 2);
+    }
+
+    function openInGraph(id) {
+      selectClaim(id);
+      switchView("graph");
+    }
+
+    function openInApproval(id) {
+      selectClaim(id);
+      switchView("approval");
+    }
+
+    // =========================================================================
+    // 5. 1-CLICK APPROVAL GATE & COMPOSER
+    // =========================================================================
+    function renderApprovalQueue() {
+      const box = document.getElementById("approval-queue-list");
+      box.innerHTML = entitlements.map(item => {
+        const active = item.id === selectedClaimId;
+        return `
+          <button onclick="selectClaim(${item.id})" class="w-full text-left p-3 rounded-xl border transition cursor-pointer ${active ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:border-slate-700'}">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-emerald-400">₹${item.amount.toLocaleString("en-IN")}</span>
+              <span class="text-[10px] font-mono ${item.status === 'approved' ? 'text-emerald-400 font-bold' : 'text-amber-300'}">
+                ${item.status === 'approved' ? '✓ SENT' : `${item.daysLeft}d left`}
+              </span>
+            </div>
+            <p class="text-xs font-semibold mt-1 line-clamp-1">${item.title}</p>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function loadApprovalComposer(item) {
+      document.getElementById("comp-clause-callout").textContent = item.citedClause;
+      document.getElementById("comp-to").value = item.draft.to;
+      document.getElementById("comp-subject").value = item.draft.subject;
+      document.getElementById("comp-body").value = item.draft.body;
+
+      document.getElementById("comp-attachments").innerHTML = item.draft.attachments.map(f => `
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono bg-slate-950 text-sky-300 border border-sky-500/30">
+          <i data-lucide="paperclip" class="w-3.5 h-3.5"></i> ${f}
+        </span>
+      `).join("");
+
+      const badge = document.getElementById("composer-status-badge");
+      const btn = document.getElementById("comp-dispatch-btn");
+      const btnText = document.getElementById("comp-dispatch-text");
+
+      if (item.status === "approved") {
+        badge.textContent = "Dispatched via Gmail MCP";
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+        btnText.textContent = "✓ Approved & Sent via Gmail MCP";
+        btn.disabled = true;
+        btn.classList.add("opacity-60", "cursor-not-allowed");
+      } else {
+        badge.textContent = "Awaiting User Approval";
+        badge.className = "px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30";
+        btnText.textContent = "✅ Approve & Dispatch via Gmail MCP";
+        btn.disabled = false;
+        btn.classList.remove("opacity-60", "cursor-not-allowed");
+      }
+    }
+
+    function saveDraftOnly() {
+      const item = entitlements.find(e => e.id === selectedClaimId);
+      addMcpLog("gmail", "mcp://google-workspace/gmail.drafts.create", `Saved draft "${item.draft.subject.slice(0, 32)}..."`, "94 ms", "DRAFT_SAVED");
+      showToast("Draft Saved in Gmail", "Staged safely without sending.");
+    }
+
+    function dispatchApprovedClaim() {
+      const item = entitlements.find(e => e.id === selectedClaimId);
+      if (!item || item.status === "approved") return;
+
+      item.status = "approved";
+      updateAllTelemetry();
+      renderEntitlements();
+      renderApprovalQueue();
+      loadApprovalComposer(item);
+
+      const to = document.getElementById("comp-to").value;
+      addMcpLog("human", "gmail.users.messages.send (HUMAN_APPROVED)", `Dispatched ₹${item.amount.toLocaleString("en-IN")} claim to ${to}`, "215 ms", "SENT_200");
+      showToast(`Claim Dispatched! (+₹${item.amount.toLocaleString("en-IN")})`, `Sent via Gmail MCP & follow-up scheduled in Calendar.`);
+      lucide.createIcons();
+    }
+
+    // =========================================================================
+    // 6. AUTONOMOUS MCP SCAN MODAL (UNLOCKS 6TH ENTITLEMENT)
+    // =========================================================================
+    function openScanModal() {
+      const modal = document.getElementById("scan-modal");
+      const logs = document.getElementById("modal-scan-logs");
+      const bar = document.getElementById("modal-scan-bar");
+      const footer = document.getElementById("modal-scan-footer");
+
+      modal.classList.remove("hidden");
+      footer.classList.add("hidden");
+      logs.innerHTML = "";
+      bar.style.width = "8%";
+
+      const steps = [
+        { pct: "22%", color: "text-sky-400", text: "[FastMCP] Calling mcp://google-workspace/gmail.search (read-only)..." },
+        { pct: "44%", color: "text-indigo-400", text: "[AWS Textract] Extracting dates, serials & amounts from 8 Drive PDFs..." },
+        { pct: "65%", color: "text-emerald-400", text: "[Local PII Guard] Masked 3 Aadhaar/Card strings via regex before Bedrock..." },
+        { pct: "84%", color: "text-purple-400", text: "[pgvector] Matched Apple MacBook Invoice + AppleCare+ Clause 2.3 (Sim: 0.97)..." },
+        { pct: "100%", color: "text-amber-300", text: "[Bedrock Claude 3.5] Verified ₹6,500 AppleCare+ Display Repair Coverage!" }
+      ];
+
+      steps.forEach((s, idx) => {
+        setTimeout(() => {
+          bar.style.width = s.pct;
+          const div = document.createElement("div");
+          div.className = s.color;
+          div.textContent = s.text;
+          logs.appendChild(div);
+
+          if (idx === steps.length - 1) {
+            if (!bonusScanDone) {
+              bonusScanDone = true;
+              piiRedactedCount += 3;
+              entitlements.unshift({
+                id: 6,
+                title: "AppleCare+ MacBook Display Anti-Reflective Replacement",
+                category: "warranty",
+                amount: 6500,
+                daysLeft: 4,
+                confidence: 97,
+                status: "pending",
+                sources: ["Gmail Apple Invoice", "Drive AppleCare+ PDF", "Genius Bar Quote"],
+                voiceEn: "New discovery from Autonomous MCP Scan! Your MacBook qualifies for a free 6,500 rupee display replacement under AppleCare+ Clause 2.3.",
+                voiceHi: "Nayi Discovery: Aapke MacBook ka 6,500 rupaye ka display replacement AppleCare+ Clause 2.3 ke तहत covered hai.",
+                citedClause: "\"AppleCare+ Clause 2.3: Display assembly & anti-reflective coating defects are covered at ₹0 service fee within 36 months.\"",
+                nodes: [
+                  { source: "Gmail MCP: Apple Store Invoice", title: "Apple Invoice #APL-551920", meta: "MacBook Pro · Serial C02Z9182", ocr: "Apple India Invoice #APL-551920 for MacBook Pro.", json: { serial: "C02Z9182", card: "[CARD_LAST4_REDACTED]" } },
+                  { source: "Drive MCP: AppleCare+ PDF", title: "AppleCare_Plus_Certificate.pdf", meta: "Clause 2.3: ₹0 display replacement", ocr: "Clause 2.3 covers display assembly defects for 36 months.", json: { clause: "2.3", pgvector_sim: 0.974 } },
+                  { source: "Gmail MCP: Service Estimate", title: "Apple Authorized Service Quote", meta: "Quoted ₹6,500 · Waivable under Clause 2.3", ocr: "Service estimate ₹6,500.", json: { quote_inr: 6500 } }
+                ],
+                draft: {
+                  to: "applecare.india@apple.com",
+                  subject: "AppleCare+ Clause 2.3 Display Coverage Claim (₹6,500) — Serial C02Z9182",
+                  body: "Dear Apple India Support,\n\nPer Clause 2.3 of my attached AppleCare+ Certificate, my MacBook Pro (Serial: C02Z9182) qualifies for a ₹0 display replacement. Please waive the ₹6,500 service quote.\n\nRegards,\nJayalakshmi M",
+                  attachments: ["Apple_Invoice_APL551920.pdf", "AppleCare_Clause2_3.pdf"]
+                }
+              });
+              addMcpLog("bedrock", "fastmcp.autonomous_scan", "Discovered 6th claim: AppleCare+ Display Replacement (₹6,500)", "1,140 ms", "NEW_CLAIM");
+              updateAllTelemetry();
+              renderEntitlements();
+              selectClaim(6);
+            }
+            footer.classList.remove("hidden");
+          }
+        }, (idx + 1) * 520);
+      });
+    }
+
+    function closeScanModal() {
+      document.getElementById("scan-modal").classList.add("hidden");
+    }
+
+    // =========================================================================
+    // 7. LIVE CUSTOM DOCUMENT & RECEIPT SIMULATOR
+    // =========================================================================
+    function loadSimPreset(key) {
+      const box = document.getElementById("sim-input-text");
+      if (key === "dell") {
+        box.value = `GMAIL INVOICE: Dell India Order #DL-88412 | Dell XPS 13 (Service Tag: 9H72K1) | Paid ₹1,14,900.\nDRIVE POLICY PDF: Dell Premium Support Plus Clause 5.2 — "Accidental electrical surge & motherboard failures are covered 100% with zero deductible."\nSUPPORT EMAIL: Dell Service Center quoted ₹12,000 for motherboard replacement.`;
+      } else if (key === "star") {
+        box.value = `GMAIL RECEIPT: Apollo Diagnostics Bengaluru | Annual Preventive Health Checkup Paid ₹3,500.\nDRIVE INSURANCE PDF: Star Health Optima Section 6.2 — "Preventive annual health checkup expenses up to ₹3,500 are 100% reimbursable once every policy year."`;
+      } else {
+        box.value = `GMAIL BILLING ALERT: Amazon Prime Annual Membership charged ₹1,499 twice (Order #AMZ-1102 & #AMZ-1103) on [CARD_LAST4_REDACTED].\nDRIVE TERMS PDF: Amazon Billing Policy Clause 1.4 — "Duplicate subscription charges are eligible for 100% instant refund."`;
+      }
+      document.getElementById("sim-status-tag").textContent = "Preset Loaded";
+    }
+
+    function runSimExtraction() {
+      const text = document.getElementById("sim-input-text").value.trim();
+      if (!text) {
+        showToast("Paste Text First", "Click one of the 3 preset buttons above.");
+        return;
+      }
+
+      const lower = text.toLowerCase();
+      if (lower.includes("dell")) {
+        simDraftObject = {
+          title: "Dell XPS 13 Accidental Damage Motherboard Claim",
+          category: "warranty",
+          amount: 12000,
+          daysLeft: 9,
+          confidence: 97,
+          clause: "\"Dell Premium Support Plus Clause 5.2: Accidental electrical surge & motherboard failures covered 100%.\"",
+          to: "support.india@dell.com"
+        };
+      } else if (lower.includes("star")) {
+        simDraftObject = {
+          title: "Star Health Annual Checkup Reimbursement",
+          category: "rewards",
+          amount: 3500,
+          daysLeft: 15,
+          confidence: 96,
+          clause: "\"Star Health Optima Section 6.2: Preventive annual health checkup up to ₹3,500 is 100% reimbursable.\"",
+          to: "claims@starhealth.in"
+        };
+      } else {
+        simDraftObject = {
+          title: "Amazon Prime Duplicate Charge Refund",
+          category: "subscription",
+          amount: 1499,
+          daysLeft: 6,
+          confidence: 99,
+          clause: "\"Amazon Billing Policy Clause 1.4: Duplicate subscription charges qualify for 100% instant refund.\"",
+          to: "prime-billing@amazon.in"
+        };
+      }
+
+      document.getElementById("sim-status-tag").textContent = "Bedrock Verified ✓";
+      document.getElementById("sim-output-area").innerHTML = `
+        <div class="rounded-xl bg-slate-950 border border-emerald-500/40 p-4 space-y-3 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-emerald-400">✓ Entity &amp; Policy Matched (${simDraftObject.confidence}%)</span>
+            <span class="text-lg font-extrabold text-white">₹${simDraftObject.amount.toLocaleString("en-IN")}</span>
+          </div>
+          <p class="font-bold text-white text-sm">${simDraftObject.title}</p>
+          <div class="p-3 rounded-lg bg-sky-950/40 border border-sky-500/30 font-mono text-sky-200">
+            ${simDraftObject.clause}
+          </div>
+          <div class="flex justify-between text-[11px] font-mono text-slate-400">
+            <span>PII Guard: [CARD_LAST4_REDACTED]</span>
+            <span>Deadline: ${simDraftObject.daysLeft} days left</span>
+          </div>
+        </div>
+      `;
+      document.getElementById("sim-add-btn-wrap").classList.remove("hidden");
+      addMcpLog("bedrock", "simulator.textract_bedrock", `Extracted & matched "${simDraftObject.title}" (₹${simDraftObject.amount})`, "490 ms", "MATCHED");
+    }
+
+    function addSimulatedClaimToDashboard() {
+      if (!simDraftObject) return;
+      const newId = entitlements.length + 1;
+      entitlements.unshift({
+        id: newId,
+        title: simDraftObject.title,
+        category: simDraftObject.category,
+        amount: simDraftObject.amount,
+        daysLeft: simDraftObject.daysLeft,
+        confidence: simDraftObject.confidence,
+        status: "pending",
+        sources: ["Custom OCR Receipt", "Matched Policy PDF", "Bedrock Verified"],
+        voiceEn: `New custom claim verified: ${simDraftObject.title} worth ${simDraftObject.amount} rupees.`,
+        voiceHi: `Naya custom claim verify hua hai: ${simDraftObject.title}, value ${simDraftObject.amount} rupaye.`,
+        citedClause: simDraftObject.clause,
+        nodes: [
+          { source: "Custom OCR Input", title: "Extracted Receipt", meta: `Value: ₹${simDraftObject.amount}`, ocr: "Extracted via AWS Textract.", json: { amount_inr: simDraftObject.amount } },
+          { source: "Policy Clause Matcher", title: "Matched Policy PDF", meta: simDraftObject.clause, ocr: simDraftObject.clause, json: { confidence: simDraftObject.confidence } },
+          { source: "Safety Gate", title: "Staged for Approval", meta: `${simDraftObject.daysLeft} days left`, ocr: "Ready for Gmail MCP dispatch.", json: { status: "gated" } }
+        ],
+        draft: {
+          to: simDraftObject.to,
+          subject: `Verified Policy Claim (₹${simDraftObject.amount.toLocaleString("en-IN")}) — ${simDraftObject.title}`,
+          body: `Dear Support Team,\n\nPlease process my claim of ₹${simDraftObject.amount.toLocaleString("en-IN")} under ${simDraftObject.clause}.\n\nRegards,\nJayalakshmi M`,
+          attachments: ["Extracted_Receipt.pdf", "Cited_Policy_Clause.pdf"]
+        }
+      });
+
+      simDraftObject = null;
+      document.getElementById("sim-add-btn-wrap").classList.add("hidden");
+      updateAllTelemetry();
+      renderEntitlements();
+      selectClaim(newId);
+      switchView("entitlements");
+      showToast("Added to Active Entitlements", "Claim is now live on your Command Center & Approval Queue.");
+    }
+
+    // =========================================================================
+    // 8. MCP CONNECTORS & LIVE REGEX PII SANITIZER
+    // =========================================================================
+    function renderMcpConnectors() {
+      const grid = document.getElementById("mcp-connectors-grid");
+      grid.innerHTML = mcpConnectors.map((c, idx) => `
+        <div class="glass-panel rounded-2xl p-4 flex flex-col justify-between space-y-3">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="p-2 rounded-xl bg-${c.color}-500/15 text-${c.color}-400">
+                <i data-lucide="${c.icon}" class="w-4 h-4"></i>
+              </span>
+              <button onclick="toggleMcpServer(${idx})" class="px-2.5 py-1 rounded-full text-[11px] font-bold transition cursor-pointer ${c.active ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400 hover:text-white'}">
+                ${c.active ? 'Connected' : 'Enable'}
+              </button>
+            </div>
+            <h4 class="mt-3 text-sm font-bold text-white">${c.name}</h4>
+            <p class="text-[11px] font-mono text-slate-400 mt-1">${c.scope}</p>
+          </div>
+          <div class="pt-2 border-t border-slate-800 text-[11px] text-emerald-400 font-medium">
+            ${c.meta}
+          </div>
+        </div>
+      `).join("");
+      lucide.createIcons();
+    }
+
+    function toggleMcpServer(idx) {
+      mcpConnectors[idx].active = !mcpConnectors[idx].active;
+      renderMcpConnectors();
+      updateAllTelemetry();
+      addMcpLog("human", `mcp.server.${mcpConnectors[idx].id}`, `${mcpConnectors[idx].name} ${mcpConnectors[idx].active ? "CONNECTED" : "DISCONNECTED"}`, "35 ms", "UPDATED");
+    }
+
+    function runLivePiiSanitizer() {
+      const raw = document.getElementById("pii-raw-input").value;
+      const sanitized = raw
+        .replace(/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g, "[AADHAAR_REDACTED]")
+        .replace(/\b(?:\d{4}[-\s]?){3}\d{4}\b/g, "[CARD_LAST4_REDACTED]")
+        .replace(/(\+91[-\s]?)?[6-9]\d{9}\b/g, "[PHONE_REDACTED]");
+      document.getElementById("pii-sanitized-output").textContent = sanitized;
+    }
+
+    // =========================================================================
+    // 9. HOUSEHOLD SAVINGS & SAAS ROI CALCULATOR
+    // =========================================================================
+    function updateSavingsCalc() {
+      const orders = parseInt(document.getElementById("calc-orders").value, 10);
+      const subs = parseInt(document.getElementById("calc-subs").value, 10);
+      const big = parseInt(document.getElementById("calc-big").value, 10);
+
+      document.getElementById("calc-orders-val").textContent = `${orders} orders/mo`;
+      document.getElementById("calc-subs-val").textContent = `${subs} subscriptions`;
+      document.getElementById("calc-big-val").textContent = `${big} high-value items/yr`;
+
+      const annualRecovery = (orders * 650) + (subs * 1100) + (big * 2175);
+      const roiMult = (annualRecovery / (149 * 12)).toFixed(1);
+
+      document.getElementById("calc-annual-recovery").textContent = `₹${annualRecovery.toLocaleString("en-IN")}/yr`;
+      document.getElementById("calc-roi-mult").textContent = `${roiMult}x ROI`;
+    }
+
+    // =========================================================================
+    // 10. REAL-TIME MCP JSON-RPC AUDIT LOG & EXPORT
+    // =========================================================================
+    function addMcpLog(category, method, detail, latency, status) {
+      const now = new Date().toTimeString().split(" ")[0];
+      mcpAuditRows.unshift({ time: now, category, method, detail, latency, status });
+      updateAllTelemetry();
+      renderAuditTable();
+    }
+
+    function renderAuditTable() {
+      const filter = document.getElementById("audit-filter").value;
+      const rows = mcpAuditRows.filter(r => filter === "ALL" || r.category === filter);
+      document.getElementById("audit-table-body").innerHTML = rows.map(r => `
+        <tr class="hover:bg-slate-900/60">
+          <td class="py-2.5 px-3 text-slate-500">${r.time}</td>
+          <td class="py-2.5 px-3 text-sky-300 font-semibold">${r.method}</td>
+          <td class="py-2.5 px-3 text-slate-300">${r.detail}</td>
+          <td class="py-2.5 px-3 text-slate-400">${r.latency}</td>
+          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400">${r.status}</span></td>
+        </tr>
+      `).join("");
+    }
+
+    function exportRecoveryReport() {
+      const reportData = {
+        project: "LOSTLESS AI — Team Codex (Track 1)",
+        exported_at: new Date().toISOString(),
+        entitlements_count: entitlements.length,
+        entitlements: entitlements.map(e => ({ id: e.id, title: e.title, amount_inr: e.amount, status: e.status, clause: e.citedClause }))
+      };
+      const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "LOSTLESS_AI_Recovery_Report.json";
+      a.click();
+      URL.revokeObjectURL(url);
+      addMcpLog("human", "report.export_json", "Downloaded LOSTLESS_AI_Recovery_Report.json", "8 ms", "EXPORTED");
+      showToast("Recovery Report Exported", "Saved LOSTLESS_AI_Recovery_Report.json");
+    }
+
+    // =========================================================================
+    // 11. PERSISTENT ELEVENLABS VOICE BRIEFING PLAYER
+    // =========================================================================
+    function playClaimVoice(id) {
+      selectClaim(id);
+      if (isSpeaking) stopVoice();
+      startVoice();
+    }
+
+    function toggleFloatingVoice() {
+      if (isSpeaking) stopVoice();
+      else startVoice();
+    }
+
+    function startVoice() {
+      const item = entitlements.find(e => e.id === selectedClaimId) || entitlements[0];
+      const lang = document.getElementById("voice-lang").value;
+      const script = lang === "hi" ? item.voiceHi : item.voiceEn;
+
+      document.getElementById("float-transcript").textContent = script;
+      const waveform = document.getElementById("float-waveform");
+      const icon = document.getElementById("float-voice-icon");
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(script);
+        utter.lang = lang === "hi" ? "hi-IN" : "en-IN";
+        utter.rate = 1.02;
+        utter.onstart = () => {
+          isSpeaking = true;
+          waveform.classList.add("wave-active");
+          icon.setAttribute("data-lucide", "square");
+          lucide.createIcons();
+        };
+        utter.onend = () => stopVoice();
+        utter.onerror = () => stopVoice();
+        window.speechSynthesis.speak(utter);
+        addMcpLog("bedrock", "elevenlabs.tts.stream", `Streamed ${lang.toUpperCase()} briefing for "${item.title.slice(0, 28)}..."`, "190 ms", "PLAYED");
+      } else {
+        isSpeaking = true;
+        waveform.classList.add("wave-active");
+        setTimeout(stopVoice, 4000);
+      }
+    }
+
+    function stopVoice() {
+      if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+      isSpeaking = false;
+      document.getElementById("float-waveform").classList.remove("wave-active");
+      document.getElementById("float-voice-icon").setAttribute("data-lucide", "play");
+      lucide.createIcons();
+    }
+
+    // =========================================================================
+    // 12. TOAST & INITIALIZATION
+    // =========================================================================
+    function showToast(title, msg) {
+      const t = document.getElementById("toast");
+      document.getElementById("toast-title").textContent = title;
+      document.getElementById("toast-msg").textContent = msg;
+      t.classList.remove("hidden");
+      setTimeout(() => t.classList.add("hidden"), 4000);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      updateAllTelemetry();
+      renderEntitlements();
+      selectClaim(1);
+      renderMcpConnectors();
+      runLivePiiSanitizer();
+      updateSavingsCalc();
+      renderAuditTable();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
