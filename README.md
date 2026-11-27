@@ -1,5 +1,5 @@
 # LOSTLESS.AI - Team Codex (Track 1: Make MCP Matter)
-# LOSTLESS.AI — Proactive Loss & Entitlement Discovery Engine
+
 > **wHACKiest 2026 Submission** | **Team Codex** (Team Code: `d6f9b253`)
 
 ---
